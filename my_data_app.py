@@ -8,10 +8,8 @@ import plotly.graph_objects as go
 from datetime import datetime
 import time
 
-# Page configuration
-st.set_page_config(page_title="CoinAfrique Scraper", page_icon="🐾", layout="wide")
+st.set_page_config(page_title="CoinAfrique Scraper", page_icon="", layout="wide")
 
-# Custom CSS styles
 st.markdown("""
 <style>
     .main-header {
@@ -47,10 +45,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Main title
-st.markdown("<h1 class='main-header'>🐾 CoinAfrique Animal Scraper</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>CoinAfrique Animal Scraper</h1>", unsafe_allow_html=True)
 
-# SQLite database configuration
 def init_db():
     conn = sqlite3.connect('coinafrique_data.db')
     c = conn.cursor()
@@ -65,7 +61,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Improved scraping function
 def scrape_all_pages(base_url, category_name, max_pages=10):
     df_list = []
     progress_bar = st.progress(0)
@@ -107,7 +102,7 @@ def scrape_all_pages(base_url, category_name, max_pages=10):
                 df_list.append(pd.DataFrame(data))
             
             progress_bar.progress(page / max_pages)
-            time.sleep(1)  # Pause to avoid server overload
+            time.sleep(1)
             
         except Exception as e:
             status_text.error(f"Error scraping page {page}: {str(e)}")
@@ -120,20 +115,17 @@ def scrape_all_pages(base_url, category_name, max_pages=10):
         return pd.concat(df_list, ignore_index=True)
     return pd.DataFrame()
 
-# Save to database
 def save_to_db(df):
     conn = sqlite3.connect('coinafrique_data.db')
     df.to_sql('scraped_data', conn, if_exists='append', index=False)
     conn.close()
 
-# Load from database
 def load_from_db():
     conn = sqlite3.connect('coinafrique_data.db')
     df = pd.read_sql_query("SELECT * FROM scraped_data", conn)
     conn.close()
     return df
 
-# Clean data
 def clean_data(df):
     df_clean = df.copy()
     df_clean['price'] = pd.to_numeric(df_clean['price'], errors='coerce')
@@ -141,25 +133,21 @@ def clean_data(df):
     df_clean = df_clean[df_clean['price'] > 0]
     return df_clean
 
-# Initialize database
 init_db()
 
-# Sidebar navigation
-st.sidebar.title("📋 Navigation")
+st.sidebar.title("Navigation")
 page = st.sidebar.radio("Choose a page:", 
-                        ["🔍 Scraper", "📊 Dashboard", "💾 Download Data", "📝 Evaluation"])
+                        ["Scraper", "Dashboard", "Download Data", "Evaluation"])
 
-# Categories dictionary
 CATEGORIES = {
-    "🐕 Dogs": "https://sn.coinafrique.com/categorie/chiens",
-    "🐑 Sheep": "https://sn.coinafrique.com/categorie/moutons",
-    "🐔 Chickens, Rabbits & Pigeons": "https://sn.coinafrique.com/categorie/poules-lapins-et-pigeons",
-    "🦎 Other Animals": "https://sn.coinafrique.com/categorie/autres-animaux"
+    "Dogs": "https://sn.coinafrique.com/categorie/chiens",
+    "Sheep": "https://sn.coinafrique.com/categorie/moutons",
+    "Chickens, Rabbits & Pigeons": "https://sn.coinafrique.com/categorie/poules-lapins-et-pigeons",
+    "Other Animals": "https://sn.coinafrique.com/categorie/autres-animaux"
 }
 
-# PAGE 1: SCRAPER
-if page == "🔍 Scraper":
-    st.header("🔍 Scrape Data")
+if page == "Scraper":
+    st.header("Scrape Data")
     st.markdown("Select a category and the number of pages to scrape.")
     
     col1, col2 = st.columns(2)
@@ -170,30 +158,28 @@ if page == "🔍 Scraper":
     with col2:
         num_pages = st.number_input("Number of pages:", min_value=1, max_value=50, value=5)
     
-    if st.button("🚀 Start Scraping"):
+    if st.button("Start Scraping"):
         with st.spinner("Scraping in progress..."):
             df = scrape_all_pages(CATEGORIES[selected_category], selected_category, num_pages)
             
             if not df.empty:
-                st.success(f"✅ {len(df)} listings scraped successfully!")
+                st.success(f"{len(df)} listings scraped successfully!")
                 save_to_db(df)
                 st.dataframe(df.head(10))
-                st.info(f"📁 Data saved to SQLite database")
+                st.info(f"Data saved to SQLite database")
             else:
                 st.warning("No data found.")
 
-# PAGE 2: DASHBOARD
-elif page == "📊 Dashboard":
-    st.header("📊 Data Dashboard")
+elif page == "Dashboard":
+    st.header("Data Dashboard")
     
     df = load_from_db()
     
     if df.empty:
-        st.warning("⚠️ No data available. Please scrape data first.")
+        st.warning("No data available. Please scrape data first.")
     else:
         df_clean = clean_data(df)
         
-        # Main metrics
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.metric("Total Listings", len(df_clean))
@@ -206,42 +192,36 @@ elif page == "📊 Dashboard":
         
         st.markdown("---")
         
-        # Charts
         col1, col2 = st.columns(2)
         
         with col1:
-            # Price distribution by category
             fig1 = px.box(df_clean, x='category', y='price', 
                          title="Price Distribution by Category",
                          labels={'price': 'Price (CFA)', 'category': 'Category'})
             st.plotly_chart(fig1, use_container_width=True)
         
         with col2:
-            # Listings per category
             cat_counts = df_clean['category'].value_counts()
             fig2 = px.pie(values=cat_counts.values, names=cat_counts.index,
                          title="Listings Distribution by Category")
             st.plotly_chart(fig2, use_container_width=True)
         
-        # Listings by city
         city_counts = df_clean['adresse'].value_counts().head(10)
         fig3 = px.bar(x=city_counts.index, y=city_counts.values,
                      title="Top 10 Cities with Most Listings",
                      labels={'x': 'City', 'y': 'Number of Listings'})
         st.plotly_chart(fig3, use_container_width=True)
         
-        # Data table
-        st.subheader("📋 Cleaned Data Preview")
+        st.subheader("Cleaned Data Preview")
         st.dataframe(df_clean, use_container_width=True)
 
-# PAGE 3: DOWNLOAD
-elif page == "💾 Download Data":
-    st.header("💾 Download Data")
+elif page == "Download Data":
+    st.header("Download Data")
     
     df = load_from_db()
     
     if df.empty:
-        st.warning("⚠️ No data available.")
+        st.warning("No data available.")
     else:
         col1, col2 = st.columns(2)
         
@@ -249,7 +229,7 @@ elif page == "💾 Download Data":
             st.subheader("Raw Data")
             csv_raw = df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Download CSV (Raw)",
+                label="Download CSV (Raw)",
                 data=csv_raw,
                 file_name=f'coinafrique_raw_{datetime.now().strftime("%Y%m%d")}.csv',
                 mime='text/csv'
@@ -260,21 +240,19 @@ elif page == "💾 Download Data":
             df_clean = clean_data(df)
             csv_clean = df_clean.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Download CSV (Cleaned)",
+                label="Download CSV (Cleaned)",
                 data=csv_clean,
                 file_name=f'coinafrique_clean_{datetime.now().strftime("%Y%m%d")}.csv',
                 mime='text/csv'
             )
         
-        st.info(f"📊 {len(df)} rows available (raw) | {len(df_clean)} rows (cleaned)")
+        st.info(f"{len(df)} rows available (raw) | {len(df_clean)} rows (cleaned)")
 
-# PAGE 4: EVALUATION
-elif page == "📝 Evaluation":
-    st.header("📝 App Evaluation Forms")
+elif page == "Evaluation":
+    st.header("App Evaluation Forms")
     st.markdown("Please provide your feedback using one of the forms below:")
     
-    # Create tabs for different forms
-    tab1, tab2 = st.tabs(["📋 KoboToolbox Form", "📝 Google Form"])
+    tab1, tab2 = st.tabs(["KoboToolbox Form", "Google Form"])
     
     with tab1:
         st.markdown("""
@@ -284,7 +262,6 @@ elif page == "📝 Evaluation":
         </div>
         """, unsafe_allow_html=True)
         
-        # KoboToolbox form embed
         kobotoolbox_url = st.text_input(
             "Enter your KoboToolbox form URL:",
             placeholder="https://ee.kobotoolbox.org/x/...",
@@ -300,12 +277,12 @@ elif page == "📝 Evaluation":
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.info("👆 Please enter your KoboToolbox form URL above to display the form.")
+            st.info("Please enter your KoboToolbox form URL above to display the form.")
             st.markdown("""
             **How to get your KoboToolbox URL:**
-            1. Go to [KoboToolbox](https://www.kobotoolbox.org/)
+            1. Go to KoboToolbox
             2. Create or open your form
-            3. Click on "Deploy" → "Web form link"
+            3. Click on Deploy then Web form link
             4. Copy the URL and paste it above
             """)
     
@@ -317,7 +294,6 @@ elif page == "📝 Evaluation":
         </div>
         """, unsafe_allow_html=True)
         
-        # Google Form embed
         google_form_url = st.text_input(
             "Enter your Google Form URL:",
             placeholder="https://docs.google.com/forms/d/e/.../viewform",
@@ -325,7 +301,6 @@ elif page == "📝 Evaluation":
         )
         
         if google_form_url:
-            # Convert to embed URL if needed
             if "viewform" in google_form_url:
                 embed_url = google_form_url.replace("viewform", "viewform?embedded=true")
             else:
@@ -339,22 +314,21 @@ elif page == "📝 Evaluation":
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.info("👆 Please enter your Google Form URL above to display the form.")
+            st.info("Please enter your Google Form URL above to display the form.")
             st.markdown("""
             **How to get your Google Form URL:**
             1. Open your Google Form
-            2. Click "Send" button (top right)
-            3. Click the link icon (<>)
+            2. Click Send button (top right)
+            3. Click the link icon
             4. Copy the URL and paste it above
             """)
     
     st.markdown("---")
-    st.success("✅ Thank you for taking the time to evaluate our application!")
+    st.success("Thank you for taking the time to evaluate our application!")
 
-# Footer
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray;'>
-    <p>Developed with ❤️ using Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
+    <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
