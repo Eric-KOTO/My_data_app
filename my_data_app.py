@@ -311,7 +311,7 @@ elif page == "Evaluation":
         </div>
         """, unsafe_allow_html=True)
         
-        google_form_url = "YOUR_GOOGLE_FORM_URL_HERE"
+        google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLScOzEb9-oQIWjcMbC4CUgp5qP7ND4zvRWGo734Yjspd-W8nVw/viewform?usp=header"
         
         if "viewform" in google_form_url:
             embed_url = google_form_url.replace("viewform", "viewform?embedded=true")
@@ -335,3 +335,4 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
