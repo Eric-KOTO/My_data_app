@@ -296,7 +296,7 @@ elif page == "Evaluation":
         
         google_form_url = st.text_input(
             "Enter your Google Form URL:",
-            placeholder="https://docs.google.com/forms/d/e/.../viewform",
+            placeholder="https://docs.google.com/forms/d/e/1FAIpQLScOzEb9-oQIWjcMbC4CUgp5qP7ND4zvRWGo734Yjspd-W8nVw/viewform?usp=header",
             help="Paste your Google Form URL here"
         )
         
@@ -332,3 +332,4 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
