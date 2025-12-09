@@ -48,7 +48,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Main title
-st.markdown("<h1 class='main-header'>🐾 CoinAfrique Animal Scraper</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'> CoinAfrique Animal Scraper</h1>", unsafe_allow_html=True)
 
 # SQLite database configuration
 def init_db():
