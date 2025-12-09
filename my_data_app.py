@@ -8,10 +8,10 @@ import plotly.graph_objects as go
 from datetime import datetime
 import time
 
-# Configuration de la page
+# Page configuration
 st.set_page_config(page_title="CoinAfrique Scraper", page_icon="🐾", layout="wide")
 
-# Styles CSS personnalisés
+# Custom CSS styles
 st.markdown("""
 <style>
     .main-header {
@@ -32,13 +32,25 @@ st.markdown("""
     .stButton>button:hover {
         background-color: #1a5276;
     }
+    .form-card {
+        background-color: #f0f2f6;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    .iframe-container {
+        border: 2px solid #2E86AB;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 20px 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Titre principal
+# Main title
 st.markdown("<h1 class='main-header'>🐾 CoinAfrique Animal Scraper</h1>", unsafe_allow_html=True)
 
-# Configuration de la base de données SQLite
+# SQLite database configuration
 def init_db():
     conn = sqlite3.connect('coinafrique_data.db')
     c = conn.cursor()
@@ -53,7 +65,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Fonction de scraping améliorée
+# Improved scraping function
 def scrape_all_pages(base_url, category_name, max_pages=10):
     df_list = []
     progress_bar = st.progress(0)
@@ -69,7 +81,7 @@ def scrape_all_pages(base_url, category_name, max_pages=10):
             containers = soup.find_all('div', class_='col s6 m4 l3')
             
             if not containers:
-                status_text.text(f"Aucune annonce trouvée à la page {page}. Arrêt du scraping.")
+                status_text.text(f"No listings found on page {page}. Stopping scrape.")
                 break
             
             data = []
@@ -95,10 +107,10 @@ def scrape_all_pages(base_url, category_name, max_pages=10):
                 df_list.append(pd.DataFrame(data))
             
             progress_bar.progress(page / max_pages)
-            time.sleep(1)  # Pause pour éviter de surcharger le serveur
+            time.sleep(1)  # Pause to avoid server overload
             
         except Exception as e:
-            status_text.error(f"Erreur lors du scraping de la page {page}: {str(e)}")
+            status_text.error(f"Error scraping page {page}: {str(e)}")
             break
     
     progress_bar.empty()
@@ -108,20 +120,20 @@ def scrape_all_pages(base_url, category_name, max_pages=10):
         return pd.concat(df_list, ignore_index=True)
     return pd.DataFrame()
 
-# Sauvegarder dans la base de données
+# Save to database
 def save_to_db(df):
     conn = sqlite3.connect('coinafrique_data.db')
     df.to_sql('scraped_data', conn, if_exists='append', index=False)
     conn.close()
 
-# Charger depuis la base de données
+# Load from database
 def load_from_db():
     conn = sqlite3.connect('coinafrique_data.db')
     df = pd.read_sql_query("SELECT * FROM scraped_data", conn)
     conn.close()
     return df
 
-# Nettoyer les données
+# Clean data
 def clean_data(df):
     df_clean = df.copy()
     df_clean['price'] = pd.to_numeric(df_clean['price'], errors='coerce')
@@ -129,175 +141,220 @@ def clean_data(df):
     df_clean = df_clean[df_clean['price'] > 0]
     return df_clean
 
-# Initialisation de la base de données
+# Initialize database
 init_db()
 
-# Sidebar pour la navigation
+# Sidebar navigation
 st.sidebar.title("📋 Navigation")
-page = st.sidebar.radio("Choisissez une page:", 
-                        ["🔍 Scraper", "📊 Dashboard", "💾 Télécharger les données", "📝 Évaluation"])
+page = st.sidebar.radio("Choose a page:", 
+                        ["🔍 Scraper", "📊 Dashboard", "💾 Download Data", "📝 Evaluation"])
 
-# Dictionnaire des catégories
+# Categories dictionary
 CATEGORIES = {
-    "🐕 Chiens": "https://sn.coinafrique.com/categorie/chiens",
-    "🐑 Moutons": "https://sn.coinafrique.com/categorie/moutons",
-    "🐔 Poules, Lapins et Pigeons": "https://sn.coinafrique.com/categorie/poules-lapins-et-pigeons",
-    "🦎 Autres Animaux": "https://sn.coinafrique.com/categorie/autres-animaux"
+    "🐕 Dogs": "https://sn.coinafrique.com/categorie/chiens",
+    "🐑 Sheep": "https://sn.coinafrique.com/categorie/moutons",
+    "🐔 Chickens, Rabbits & Pigeons": "https://sn.coinafrique.com/categorie/poules-lapins-et-pigeons",
+    "🦎 Other Animals": "https://sn.coinafrique.com/categorie/autres-animaux"
 }
 
 # PAGE 1: SCRAPER
 if page == "🔍 Scraper":
-    st.header("🔍 Scraper les données")
-    st.markdown("Sélectionnez une catégorie et le nombre de pages à scraper.")
+    st.header("🔍 Scrape Data")
+    st.markdown("Select a category and the number of pages to scrape.")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        selected_category = st.selectbox("Catégorie:", list(CATEGORIES.keys()))
+        selected_category = st.selectbox("Category:", list(CATEGORIES.keys()))
     
     with col2:
-        num_pages = st.number_input("Nombre de pages:", min_value=1, max_value=50, value=5)
+        num_pages = st.number_input("Number of pages:", min_value=1, max_value=50, value=5)
     
-    if st.button("🚀 Lancer le scraping"):
-        with st.spinner("Scraping en cours..."):
+    if st.button("🚀 Start Scraping"):
+        with st.spinner("Scraping in progress..."):
             df = scrape_all_pages(CATEGORIES[selected_category], selected_category, num_pages)
             
             if not df.empty:
-                st.success(f"✅ {len(df)} annonces scrapées avec succès!")
+                st.success(f"✅ {len(df)} listings scraped successfully!")
                 save_to_db(df)
                 st.dataframe(df.head(10))
-                st.info(f"📁 Données sauvegardées dans la base de données SQLite")
+                st.info(f"📁 Data saved to SQLite database")
             else:
-                st.warning("Aucune donnée n'a été trouvée.")
+                st.warning("No data found.")
 
 # PAGE 2: DASHBOARD
 elif page == "📊 Dashboard":
-    st.header("📊 Dashboard des données")
+    st.header("📊 Data Dashboard")
     
     df = load_from_db()
     
     if df.empty:
-        st.warning("⚠️ Aucune donnée disponible. Veuillez d'abord scraper des données.")
+        st.warning("⚠️ No data available. Please scrape data first.")
     else:
         df_clean = clean_data(df)
         
-        # Métriques principales
+        # Main metrics
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Total d'annonces", len(df_clean))
+            st.metric("Total Listings", len(df_clean))
         with col2:
-            st.metric("Prix moyen", f"{df_clean['price'].mean():,.0f} CFA")
+            st.metric("Average Price", f"{df_clean['price'].mean():,.0f} CFA")
         with col3:
-            st.metric("Prix minimum", f"{df_clean['price'].min():,.0f} CFA")
+            st.metric("Minimum Price", f"{df_clean['price'].min():,.0f} CFA")
         with col4:
-            st.metric("Prix maximum", f"{df_clean['price'].max():,.0f} CFA")
+            st.metric("Maximum Price", f"{df_clean['price'].max():,.0f} CFA")
         
         st.markdown("---")
         
-        # Graphiques
+        # Charts
         col1, col2 = st.columns(2)
         
         with col1:
-            # Distribution des prix par catégorie
+            # Price distribution by category
             fig1 = px.box(df_clean, x='category', y='price', 
-                         title="Distribution des prix par catégorie",
-                         labels={'price': 'Prix (CFA)', 'category': 'Catégorie'})
+                         title="Price Distribution by Category",
+                         labels={'price': 'Price (CFA)', 'category': 'Category'})
             st.plotly_chart(fig1, use_container_width=True)
         
         with col2:
-            # Nombre d'annonces par catégorie
+            # Listings per category
             cat_counts = df_clean['category'].value_counts()
             fig2 = px.pie(values=cat_counts.values, names=cat_counts.index,
-                         title="Répartition des annonces par catégorie")
+                         title="Listings Distribution by Category")
             st.plotly_chart(fig2, use_container_width=True)
         
-        # Annonces par ville
+        # Listings by city
         city_counts = df_clean['adresse'].value_counts().head(10)
         fig3 = px.bar(x=city_counts.index, y=city_counts.values,
-                     title="Top 10 des villes avec le plus d'annonces",
-                     labels={'x': 'Ville', 'y': 'Nombre d\'annonces'})
+                     title="Top 10 Cities with Most Listings",
+                     labels={'x': 'City', 'y': 'Number of Listings'})
         st.plotly_chart(fig3, use_container_width=True)
         
-        # Table des données
-        st.subheader("📋 Aperçu des données nettoyées")
+        # Data table
+        st.subheader("📋 Cleaned Data Preview")
         st.dataframe(df_clean, use_container_width=True)
 
-# PAGE 3: TÉLÉCHARGER
-elif page == "💾 Télécharger les données":
-    st.header("💾 Télécharger les données")
+# PAGE 3: DOWNLOAD
+elif page == "💾 Download Data":
+    st.header("💾 Download Data")
     
     df = load_from_db()
     
     if df.empty:
-        st.warning("⚠️ Aucune donnée disponible.")
+        st.warning("⚠️ No data available.")
     else:
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("Données brutes")
+            st.subheader("Raw Data")
             csv_raw = df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Télécharger CSV (brut)",
+                label="📥 Download CSV (Raw)",
                 data=csv_raw,
                 file_name=f'coinafrique_raw_{datetime.now().strftime("%Y%m%d")}.csv',
                 mime='text/csv'
             )
         
         with col2:
-            st.subheader("Données nettoyées")
+            st.subheader("Cleaned Data")
             df_clean = clean_data(df)
             csv_clean = df_clean.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Télécharger CSV (nettoyé)",
+                label="📥 Download CSV (Cleaned)",
                 data=csv_clean,
                 file_name=f'coinafrique_clean_{datetime.now().strftime("%Y%m%d")}.csv',
                 mime='text/csv'
             )
         
-        st.info(f"📊 {len(df)} lignes disponibles (brutes) | {len(df_clean)} lignes (nettoyées)")
+        st.info(f"📊 {len(df)} rows available (raw) | {len(df_clean)} rows (cleaned)")
 
-# PAGE 4: ÉVALUATION
-elif page == "📝 Évaluation":
-    st.header("📝 Formulaire d'évaluation de l'application")
+# PAGE 4: EVALUATION
+elif page == "📝 Evaluation":
+    st.header("📝 App Evaluation Forms")
+    st.markdown("Please provide your feedback using one of the forms below:")
     
-    with st.form("evaluation_form"):
-        st.subheader("Donnez votre avis sur l'application")
+    # Create tabs for different forms
+    tab1, tab2 = st.tabs(["📋 KoboToolbox Form", "📝 Google Form"])
+    
+    with tab1:
+        st.markdown("""
+        <div class='form-card'>
+            <h3>KoboToolbox Evaluation Form</h3>
+            <p>Complete our evaluation survey via KoboToolbox platform.</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        name = st.text_input("Votre nom (optionnel)")
-        rating = st.slider("Note globale", 1, 5, 3)
-        ease_of_use = st.select_slider("Facilité d'utilisation", 
-                                        options=["Très difficile", "Difficile", "Moyen", "Facile", "Très facile"])
-        features = st.multiselect("Fonctionnalités les plus utiles",
-                                  ["Scraping", "Dashboard", "Téléchargement", "Base de données"])
-        comments = st.text_area("Commentaires et suggestions")
+        # KoboToolbox form embed
+        kobotoolbox_url = st.text_input(
+            "Enter your KoboToolbox form URL:",
+            placeholder="https://ee.kobotoolbox.org/x/...",
+            help="Paste your KoboToolbox form URL here"
+        )
         
-        submitted = st.form_submit_button("Envoyer l'évaluation")
+        if kobotoolbox_url:
+            st.markdown(f"""
+            <div class='iframe-container'>
+                <iframe src="{kobotoolbox_url}" width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">
+                    Loading form...
+                </iframe>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.info("👆 Please enter your KoboToolbox form URL above to display the form.")
+            st.markdown("""
+            **How to get your KoboToolbox URL:**
+            1. Go to [KoboToolbox](https://www.kobotoolbox.org/)
+            2. Create or open your form
+            3. Click on "Deploy" → "Web form link"
+            4. Copy the URL and paste it above
+            """)
+    
+    with tab2:
+        st.markdown("""
+        <div class='form-card'>
+            <h3>Google Forms Evaluation</h3>
+            <p>Complete our evaluation survey via Google Forms.</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        if submitted:
-            st.success("✅ Merci pour votre évaluation!")
-            st.balloons()
+        # Google Form embed
+        google_form_url = st.text_input(
+            "Enter your Google Form URL:",
+            placeholder="https://docs.google.com/forms/d/e/.../viewform",
+            help="Paste your Google Form URL here"
+        )
+        
+        if google_form_url:
+            # Convert to embed URL if needed
+            if "viewform" in google_form_url:
+                embed_url = google_form_url.replace("viewform", "viewform?embedded=true")
+            else:
+                embed_url = google_form_url
             
-            # Sauvegarder l'évaluation dans la base de données
-            conn = sqlite3.connect('coinafrique_data.db')
-            c = conn.cursor()
-            c.execute('''CREATE TABLE IF NOT EXISTS evaluations
-                         (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                          name TEXT,
-                          rating INTEGER,
-                          ease_of_use TEXT,
-                          features TEXT,
-                          comments TEXT,
-                          date TEXT)''')
-            c.execute("INSERT INTO evaluations VALUES (NULL, ?, ?, ?, ?, ?, ?)",
-                     (name, rating, ease_of_use, str(features), comments, 
-                      datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            conn.commit()
-            conn.close()
+            st.markdown(f"""
+            <div class='iframe-container'>
+                <iframe src="{embed_url}" width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">
+                    Loading form...
+                </iframe>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.info("👆 Please enter your Google Form URL above to display the form.")
+            st.markdown("""
+            **How to get your Google Form URL:**
+            1. Open your Google Form
+            2. Click "Send" button (top right)
+            3. Click the link icon (<>)
+            4. Copy the URL and paste it above
+            """)
+    
+    st.markdown("---")
+    st.success("✅ Thank you for taking the time to evaluate our application!")
 
 # Footer
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray;'>
-    <p>Développé avec ❤️ using Streamlit | Données de <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
+    <p>Developed with ❤️ using Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
