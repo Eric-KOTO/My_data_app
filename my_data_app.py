@@ -145,16 +145,16 @@ def clean_data(df):
 init_db()
 
 # Sidebar navigation
-st.sidebar.title("📋 Navigation")
+st.sidebar.title(" Navigation")
 page = st.sidebar.radio("Choose a page:", 
-                        ["🔍 Scraper", "📊 Dashboard", "💾 Download Data", "📝 Evaluation"])
+                        ["🔍 Scraper", " Dashboard", "Download Data", " Evaluation"])
 
 # Categories dictionary
 CATEGORIES = {
-    "🐕 Dogs": "https://sn.coinafrique.com/categorie/chiens",
-    "🐑 Sheep": "https://sn.coinafrique.com/categorie/moutons",
-    "🐔 Chickens, Rabbits & Pigeons": "https://sn.coinafrique.com/categorie/poules-lapins-et-pigeons",
-    "🦎 Other Animals": "https://sn.coinafrique.com/categorie/autres-animaux"
+    " Dogs": "https://sn.coinafrique.com/categorie/chiens",
+    " Sheep": "https://sn.coinafrique.com/categorie/moutons",
+    "Chickens, Rabbits & Pigeons": "https://sn.coinafrique.com/categorie/poules-lapins-et-pigeons",
+    " Other Animals": "https://sn.coinafrique.com/categorie/autres-animaux"
 }
 
 # PAGE 1: SCRAPER
@@ -175,21 +175,21 @@ if page == "🔍 Scraper":
             df = scrape_all_pages(CATEGORIES[selected_category], selected_category, num_pages)
             
             if not df.empty:
-                st.success(f"✅ {len(df)} listings scraped successfully!")
+                st.success(f" {len(df)} listings scraped successfully!")
                 save_to_db(df)
                 st.dataframe(df.head(10))
-                st.info(f"📁 Data saved to SQLite database")
+                st.info(f" Data saved to SQLite database")
             else:
                 st.warning("No data found.")
 
 # PAGE 2: DASHBOARD
-elif page == "📊 Dashboard":
-    st.header("📊 Data Dashboard")
+elif page == "Dashboard":
+    st.header(" Data Dashboard")
     
     df = load_from_db()
     
     if df.empty:
-        st.warning("⚠️ No data available. Please scrape data first.")
+        st.warning(" No data available. Please scrape data first.")
     else:
         df_clean = clean_data(df)
         
@@ -231,17 +231,17 @@ elif page == "📊 Dashboard":
         st.plotly_chart(fig3, use_container_width=True)
         
         # Data table
-        st.subheader("📋 Cleaned Data Preview")
+        st.subheader(" Cleaned Data Preview")
         st.dataframe(df_clean, use_container_width=True)
 
 # PAGE 3: DOWNLOAD
-elif page == "💾 Download Data":
-    st.header("💾 Download Data")
+elif page == "Download Data":
+    st.header(" Download Data")
     
     df = load_from_db()
     
     if df.empty:
-        st.warning("⚠️ No data available.")
+        st.warning(" No data available.")
     else:
         col1, col2 = st.columns(2)
         
@@ -260,21 +260,21 @@ elif page == "💾 Download Data":
             df_clean = clean_data(df)
             csv_clean = df_clean.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Download CSV (Cleaned)",
+                label=" Download CSV (Cleaned)",
                 data=csv_clean,
                 file_name=f'coinafrique_clean_{datetime.now().strftime("%Y%m%d")}.csv',
                 mime='text/csv'
             )
         
-        st.info(f"📊 {len(df)} rows available (raw) | {len(df_clean)} rows (cleaned)")
+        st.info(f" {len(df)} rows available (raw) | {len(df_clean)} rows (cleaned)")
 
 # PAGE 4: EVALUATION
-elif page == "📝 Evaluation":
-    st.header("📝 App Evaluation Forms")
+elif page == "Evaluation":
+    st.header(" App Evaluation Forms")
     st.markdown("Please provide your feedback using one of the forms below:")
     
     # Create tabs for different forms
-    tab1, tab2 = st.tabs(["📋 KoboToolbox Form", "📝 Google Form"])
+    tab1, tab2 = st.tabs([" KoboToolbox Form", " Google Form"])
     
     with tab1:
         st.markdown("""
@@ -300,7 +300,7 @@ elif page == "📝 Evaluation":
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.info("👆 Please enter your KoboToolbox form URL above to display the form.")
+            st.info(" Please enter your KoboToolbox form URL above to display the form.")
             st.markdown("""
             **How to get your KoboToolbox URL:**
             1. Go to [KoboToolbox](https://www.kobotoolbox.org/)
@@ -339,7 +339,7 @@ elif page == "📝 Evaluation":
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.info("👆 Please enter your Google Form URL above to display the form.")
+            st.info("Please enter your Google Form URL above to display the form.")
             st.markdown("""
             **How to get your Google Form URL:**
             1. Open your Google Form
@@ -349,13 +349,14 @@ elif page == "📝 Evaluation":
             """)
     
     st.markdown("---")
-    st.success("✅ Thank you for taking the time to evaluate our application!")
+    st.success(" Thank you for taking the time to evaluate our application!")
 
 # Footer
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray;'>
-    <p>Developed with ❤️ using Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
+    <p>Developed with using Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
 
