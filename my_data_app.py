@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 import time
 
-st.set_page_config(page_title="CoinAfrique Scraper", page_icon="", layout="wide")
+st.set_page_config(page_title="CoinAfrique Scraper", page_icon="🐾", layout="wide")
 
 st.markdown("""
 <style>
@@ -133,17 +133,35 @@ def clean_data(df):
     df_clean = df_clean[df_clean['price'] > 0]
     return df_clean
 
+def load_csv_data(filename):
+    try:
+        df = pd.read_csv(f'data/{filename}')
+        return df
+    except FileNotFoundError:
+        st.error(f"File not found: data/{filename}")
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error loading file: {str(e)}")
+        return pd.DataFrame()
+
 init_db()
 
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Choose a page:", 
-                        ["Scraper", "Dashboard", "Download Data", "Evaluation"])
+                        ["Scraper", "Pre-loaded CSV Data", "Dashboard", "Download Data", "Evaluation"])
 
 CATEGORIES = {
     "Dogs": "https://sn.coinafrique.com/categorie/chiens",
     "Sheep": "https://sn.coinafrique.com/categorie/moutons",
     "Chickens, Rabbits & Pigeons": "https://sn.coinafrique.com/categorie/poules-lapins-et-pigeons",
     "Other Animals": "https://sn.coinafrique.com/categorie/autres-animaux"
+}
+
+CSV_FILES = {
+    "Other Animals Data": "autres_animaux_data.csv",
+    "Dogs Data": "chien_data.csv",
+    "Chickens Rabbits Pigeons Data": "lapin_poule_pigeon_data.csv",
+    "Sheep Data": "moutons_data.csv"
 }
 
 if page == "Scraper":
@@ -169,6 +187,52 @@ if page == "Scraper":
                 st.info(f"Data saved to SQLite database")
             else:
                 st.warning("No data found.")
+
+elif page == "Pre-loaded CSV Data":
+    st.header("Pre-loaded CSV Data")
+    st.markdown("View pre-scraped data from CSV files.")
+    
+    if 'selected_csv' not in st.session_state:
+        st.session_state.selected_csv = None
+    
+    st.markdown("### Select a dataset to view:")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("Other Animals Data", use_container_width=True):
+            st.session_state.selected_csv = "Other Animals Data"
+        
+        if st.button("Chickens Rabbits Pigeons Data", use_container_width=True):
+            st.session_state.selected_csv = "Chickens Rabbits Pigeons Data"
+    
+    with col2:
+        if st.button("Dogs Data", use_container_width=True):
+            st.session_state.selected_csv = "Dogs Data"
+        
+        if st.button("Sheep Data", use_container_width=True):
+            st.session_state.selected_csv = "Sheep Data"
+    
+    if st.session_state.selected_csv:
+        st.markdown("---")
+        st.subheader(f"Viewing: {st.session_state.selected_csv}")
+        
+        df = load_csv_data(CSV_FILES[st.session_state.selected_csv])
+        
+        if not df.empty:
+            st.write(f"Data dimension: {df.shape[0]} rows and {df.shape[1]} columns.")
+            st.dataframe(df, use_container_width=True)
+            
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Download this CSV",
+                data=csv,
+                file_name=CSV_FILES[st.session_state.selected_csv],
+                mime='text/csv',
+                use_container_width=True
+            )
+    else:
+        st.info("Please select a dataset to view by clicking one of the buttons above.")
 
 elif page == "Dashboard":
     st.header("Data Dashboard")
@@ -262,29 +326,15 @@ elif page == "Evaluation":
         </div>
         """, unsafe_allow_html=True)
         
-        kobotoolbox_url = st.text_input(
-            "Enter your KoboToolbox form URL:",
-            placeholder="https://ee.kobotoolbox.org/x/...",
-            help="Paste your KoboToolbox form URL here"
-        )
+        kobotoolbox_url = "YOUR_KOBOTOOLBOX_FORM_URL_HERE"
         
-        if kobotoolbox_url:
-            st.markdown(f"""
-            <div class='iframe-container'>
-                <iframe src="{kobotoolbox_url}" width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">
-                    Loading form...
-                </iframe>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.info("Please enter your KoboToolbox form URL above to display the form.")
-            st.markdown("""
-            **How to get your KoboToolbox URL:**
-            1. Go to KoboToolbox
-            2. Create or open your form
-            3. Click on Deploy then Web form link
-            4. Copy the URL and paste it above
-            """)
+        st.markdown(f"""
+        <div class='iframe-container'>
+            <iframe src="{kobotoolbox_url}" width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">
+                Loading form...
+            </iframe>
+        </div>
+        """, unsafe_allow_html=True)
     
     with tab2:
         st.markdown("""
@@ -294,34 +344,20 @@ elif page == "Evaluation":
         </div>
         """, unsafe_allow_html=True)
         
-        google_form_url = st.text_input(
-            "Enter your Google Form URL:",
-            placeholder="https://docs.google.com/forms/d/e/1FAIpQLScOzEb9-oQIWjcMbC4CUgp5qP7ND4zvRWGo734Yjspd-W8nVw/viewform?usp=header",
-            help="Paste your Google Form URL here"
-        )
+        google_form_url = "YOUR_GOOGLE_FORM_URL_HERE"
         
-        if google_form_url:
-            if "viewform" in google_form_url:
-                embed_url = google_form_url.replace("viewform", "viewform?embedded=true")
-            else:
-                embed_url = google_form_url
-            
-            st.markdown(f"""
-            <div class='iframe-container'>
-                <iframe src="{embed_url}" width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">
-                    Loading form...
-                </iframe>
-            </div>
-            """, unsafe_allow_html=True)
+        if "viewform" in google_form_url:
+            embed_url = google_form_url.replace("viewform", "viewform?embedded=true")
         else:
-            st.info("Please enter your Google Form URL above to display the form.")
-            st.markdown("""
-            **How to get your Google Form URL:**
-            1. Open your Google Form
-            2. Click Send button (top right)
-            3. Click the link icon
-            4. Copy the URL and paste it above
-            """)
+            embed_url = google_form_url
+        
+        st.markdown(f"""
+        <div class='iframe-container'>
+            <iframe src="{embed_url}" width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">
+                Loading form...
+            </iframe>
+        </div>
+        """, unsafe_allow_html=True)
     
     st.markdown("---")
     st.success("Thank you for taking the time to evaluate our application!")
@@ -332,4 +368,3 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
-
