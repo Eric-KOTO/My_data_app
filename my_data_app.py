@@ -250,8 +250,7 @@ elif page == "Download Data":
         
         if st.button("Chickens Rabbits Pigeons Data", use_container_width=True):
             st.session_state.selected_csv = "Chickens Rabbits Pigeons Data"
-    
-    with col2:
+            
         if st.button("Dogs Data", use_container_width=True):
             st.session_state.selected_csv = "Dogs Data"
         
@@ -335,6 +334,7 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
