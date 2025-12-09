@@ -9,7 +9,7 @@ from datetime import datetime
 import time
 
 # Page configuration
-st.set_page_config(page_title="CoinAfrique Scraper", page_icon="🐾", layout="wide")
+st.set_page_config(page_title="CoinAfrique Scraper")
 
 # Custom CSS styles
 st.markdown("""
@@ -358,3 +358,4 @@ st.markdown("""
     <p>Developed with ❤️ using Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
