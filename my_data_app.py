@@ -148,7 +148,7 @@ init_db()
 
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Choose a page:", 
-                        ["Scraper", "Pre-loaded CSV Data", "Dashboard", "Download Data", "Evaluation"])
+                        ["Scraper", "Dashboard", "Download Data", "Evaluation"])
 
 CATEGORIES = {
     "Dogs": "https://sn.coinafrique.com/categorie/chiens",
@@ -187,52 +187,6 @@ if page == "Scraper":
                 st.info(f"Data saved to SQLite database")
             else:
                 st.warning("No data found.")
-
-elif page == "Pre-loaded CSV Data":
-    st.header("Pre-loaded CSV Data")
-    st.markdown("View pre-scraped data from CSV files.")
-    
-    if 'selected_csv' not in st.session_state:
-        st.session_state.selected_csv = None
-    
-    st.markdown("### Select a dataset to view:")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if st.button("Other Animals Data", use_container_width=True):
-            st.session_state.selected_csv = "Other Animals Data"
-        
-        if st.button("Chickens Rabbits Pigeons Data", use_container_width=True):
-            st.session_state.selected_csv = "Chickens Rabbits Pigeons Data"
-    
-    with col2:
-        if st.button("Dogs Data", use_container_width=True):
-            st.session_state.selected_csv = "Dogs Data"
-        
-        if st.button("Sheep Data", use_container_width=True):
-            st.session_state.selected_csv = "Sheep Data"
-    
-    if st.session_state.selected_csv:
-        st.markdown("---")
-        st.subheader(f"Viewing: {st.session_state.selected_csv}")
-        
-        df = load_csv_data(CSV_FILES[st.session_state.selected_csv])
-        
-        if not df.empty:
-            st.write(f"Data dimension: {df.shape[0]} rows and {df.shape[1]} columns.")
-            st.dataframe(df, use_container_width=True)
-            
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download this CSV",
-                data=csv,
-                file_name=CSV_FILES[st.session_state.selected_csv],
-                mime='text/csv',
-                use_container_width=True
-            )
-    else:
-        st.info("Please select a dataset to view by clicking one of the buttons above.")
 
 elif page == "Dashboard":
     st.header("Data Dashboard")
@@ -281,36 +235,49 @@ elif page == "Dashboard":
 
 elif page == "Download Data":
     st.header("Download Data")
+    st.markdown("View and download pre-scraped CSV data files.")
     
-    df = load_from_db()
+    if 'selected_csv' not in st.session_state:
+        st.session_state.selected_csv = None
     
-    if df.empty:
-        st.warning("No data available.")
+    st.markdown("### Select a dataset to view:")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("Other Animals Data", use_container_width=True):
+            st.session_state.selected_csv = "Other Animals Data"
+        
+        if st.button("Chickens Rabbits Pigeons Data", use_container_width=True):
+            st.session_state.selected_csv = "Chickens Rabbits Pigeons Data"
+    
+    with col2:
+        if st.button("Dogs Data", use_container_width=True):
+            st.session_state.selected_csv = "Dogs Data"
+        
+        if st.button("Sheep Data", use_container_width=True):
+            st.session_state.selected_csv = "Sheep Data"
+    
+    if st.session_state.selected_csv:
+        st.markdown("---")
+        st.subheader(f"Viewing: {st.session_state.selected_csv}")
+        
+        df = load_csv_data(CSV_FILES[st.session_state.selected_csv])
+        
+        if not df.empty:
+            st.write(f"Data dimension: {df.shape[0]} rows and {df.shape[1]} columns.")
+            st.dataframe(df, use_container_width=True)
+            
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Download this CSV",
+                data=csv,
+                file_name=CSV_FILES[st.session_state.selected_csv],
+                mime='text/csv',
+                use_container_width=True
+            )
     else:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("Raw Data")
-            csv_raw = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download CSV (Raw)",
-                data=csv_raw,
-                file_name=f'coinafrique_raw_{datetime.now().strftime("%Y%m%d")}.csv',
-                mime='text/csv'
-            )
-        
-        with col2:
-            st.subheader("Cleaned Data")
-            df_clean = clean_data(df)
-            csv_clean = df_clean.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download CSV (Cleaned)",
-                data=csv_clean,
-                file_name=f'coinafrique_clean_{datetime.now().strftime("%Y%m%d")}.csv',
-                mime='text/csv'
-            )
-        
-        st.info(f"{len(df)} rows available (raw) | {len(df_clean)} rows (cleaned)")
+        st.info("Please select a dataset to view by clicking one of the buttons above.")
 
 elif page == "Evaluation":
     st.header("App Evaluation Forms")
