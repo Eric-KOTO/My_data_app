@@ -159,7 +159,7 @@ CATEGORIES = {
 
 CSV_FILES = {
     "Other Animals Data": "autres_animaux_data.csv",
-    "Dogs Data": "chien.data.csv",
+    "Dogs Data": "chiens.data.csv",
     "Chickens Rabbits Pigeons Data": "lapin_poule_pigeon_data.csv",
     "Sheep Data": "moutons_data.csv"
 }
@@ -334,6 +334,7 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
