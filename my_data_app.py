@@ -293,7 +293,7 @@ elif page == "Evaluation":
         </div>
         """, unsafe_allow_html=True)
         
-        kobotoolbox_url = "YOUR_KOBOTOOLBOX_FORM_URL_HERE"
+        kobotoolbox_url = "https://ee.kobotoolbox.org/x/GKAR6J8r"
         
         st.markdown(f"""
         <div class='iframe-container'>
@@ -335,4 +335,5 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
 
