@@ -159,7 +159,7 @@ CATEGORIES = {
 
 CSV_FILES = {
     "Other Animals Data": "autres_animaux_data.csv",
-    "Dogs Data": "chien_data.csv",
+    "Dogs Data": "chien.data.csv",
     "Chickens Rabbits Pigeons Data": "lapin_poule_pigeon_data.csv",
     "Sheep Data": "moutons_data.csv"
 }
@@ -250,7 +250,7 @@ elif page == "Download Data":
         
         if st.button("Chickens Rabbits Pigeons Data", use_container_width=True):
             st.session_state.selected_csv = "Chickens Rabbits Pigeons Data"
-            
+    with col2:
         if st.button("Dogs Data", use_container_width=True):
             st.session_state.selected_csv = "Dogs Data"
         
@@ -334,6 +334,7 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
