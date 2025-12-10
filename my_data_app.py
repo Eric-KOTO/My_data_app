@@ -1,12 +1,4 @@
-import streamlit as st
-import pandas as pd
-import sqlite3
-from requests import get
-from bs4 import BeautifulSoup as bs
-import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime
-import time
+
 
 st.set_page_config(page_title="CoinAfrique Scraper", page_icon="🐾", layout="wide")
 
@@ -334,6 +326,7 @@ st.markdown("""
     <p>Developed with Streamlit | Data from <a href='https://sn.coinafrique.com'>CoinAfrique</a></p>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
